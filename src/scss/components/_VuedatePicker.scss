@@ -1,0 +1,28 @@
+.dp__theme_light {
+  --dp-background-color: white;
+  --dp-border-color: rgba(var(--v-theme-inputBorder));
+  --dp-border-radius: $border-radius-root;
+}
+
+.dp__theme_dark {
+  --dp-menu-border-color: #2d2d2d;
+  --dp-border-color: rgba(var(--v-theme-inputBorder));
+  --dp-border-radius: $border-radius-root;
+}
+
+.dp__input {
+  height: 42px;
+  background-color: transparent;
+  border-radius: $border-radius-root;
+}
+
+:root {
+  --dp-font-family: inherit;
+  --dp-font-size: 0.875rem; /*Default font-size*/
+  --dp-preview-font-size: 0.8rem; /*Font size of the date preview in the action row*/
+  --dp-time-font-size: 0.8rem; /*Font size in the time picker*/
+}
+
+.dp__input_error {
+  --dp-border-color: rgba(var(--v-theme-error)) !important;
+}
