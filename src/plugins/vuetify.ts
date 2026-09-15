@@ -1,6 +1,31 @@
 import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg';
-import { icons } from './mdi-icon'; // Import icons from separate file
+import { icons } from './mdi-icon';
+import type { IconSet, IconProps } from 'vuetify';
+import { h } from 'vue';
+import * as mdiJs from '@mdi/js';
+
+function mdiNameToCamel(name: string): string {
+  const clean = name.startsWith('mdi-') ? name.slice(4) : name;
+  return 'mdi' + clean.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+}
+
+// Allows using "mdi-video", "mdi-eye", etc. with the SVG icon set
+const mdiDynamicSet: IconSet = {
+  component: (props: IconProps) => {
+    const icon = String(props.icon);
+    if (icon.startsWith('mdi-')) {
+      const camel = mdiNameToCamel(icon);
+      const path = (mdiJs as Record<string, string>)[camel];
+      if (path) {
+        return h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', class: 'v-icon__svg', style: 'fill:currentColor;width:1em;height:1em', 'aria-hidden': 'true' }, [
+          h('path', { d: path })
+        ]);
+      }
+    }
+    return h('i', { class: icon });
+  }
+};
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import {
@@ -36,7 +61,7 @@ export default createVuetify({
       ...icons
     },
     sets: {
-      mdi
+      mdi: mdiDynamicSet
     }
   },
   theme: {
