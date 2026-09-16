@@ -1,34 +1,12 @@
+<script setup lang="ts">
+import CmsErrorPage from '@/components/cms/CmsErrorPage.vue';
+import image from '@/assets/images/maintenance/img-error-500.svg';
+</script>
+
 <template>
-  <v-row no-gutters class="overflow-hidden bg-containerBg" style="min-height: 100vh">
-    <v-col class="d-flex align-center justify-center">
-      <div class="text-center">
-        <div class="CardMediaWrapper">
-          <img src="@/assets/images/maintenance/img-error-500.svg" alt="404" />
-        </div>
-        <h1 class="text-h1 mt-16">Page Access</h1>
-        <p class="text-h6 text-lightText">The page you are looking was moved, removed, <br />renamed, or might
-          never exist!</p>
-        <v-btn variant="flat" color="primary" class="mt-2" rounded="md" to="/"> Back To Home</v-btn>
-      </div>
-    </v-col>
-  </v-row>
+  <CmsErrorPage
+    :image="image"
+    title="Không có quyền truy cập"
+    description="Tài khoản của bạn không được phép xem trang này. Liên hệ quản trị viên nếu cần cấp quyền."
+  />
 </template>
-<style lang="scss">
-.CardMediaWrapper {
-  max-width: 720px;
-  margin: 0 auto;
-  position: relative;
-
-  >img {
-    @media (min-width: 0px) {
-      width: 250px;
-      height: 130px;
-    }
-
-    @media (min-width: 768px) {
-      width: 590px;
-      height: 300px;
-    }
-  }
-}
-</style>

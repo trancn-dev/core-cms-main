@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsTableCard from '@/components/cms/CmsTableCard.vue';
+import CmsStatusChip from '@/components/cms/CmsStatusChip.vue';
+import CmsConfirmDialog from '@/components/cms/CmsConfirmDialog.vue';
 import type { BreadcrumbType } from '@/types/common';
+import type { CommentStatus } from '@/types/media';
+import { statusFilterOptions } from '@/utils/statusMaps';
 
 const breadcrumbs: BreadcrumbType[] = [{ title: 'Bình luận', disabled: true }];
 const search = ref('');
-const filterStatus = ref('');
+const filterStatus = ref<CommentStatus | ''>('');
+const statusOpts = statusFilterOptions('comment', 'Tất cả trạng thái');
 const selected = ref<number[]>([]);
-const bulkDialog = ref(false);
-const bulkAction = ref('');
 
-const comments = ref([
+type Row = { id: number; user: string; content: string; video: string; videoId: number; status: CommentStatus; time: string };
+
+const comments = ref<Row[]>([
   { id: 1, user: 'Nguyễn Văn A', content: 'Video rất hay, cảm ơn bạn!', video: 'Hướng dẫn Vue 3', videoId: 1, status: 'approved', time: '03/09/2026 09:00' },
   { id: 2, user: 'Trần Thị B', content: 'Bạn có thể làm thêm phần nâng cao không?', video: 'Học TypeScript', videoId: 2, status: 'approved', time: '03/09/2026 10:15' },
   { id: 3, user: 'Lê Văn C', content: 'Phần này mình không hiểu lắm...', video: 'Hướng dẫn Vue 3', videoId: 1, status: 'pending', time: '04/09/2026 08:30' },
@@ -18,79 +24,144 @@ const comments = ref([
   { id: 5, user: 'Hoàng E', content: 'Nội dung rất bổ ích!', video: 'Vuetify 3', videoId: 3, status: 'pending', time: '05/09/2026 07:45' }
 ]);
 
-const filtered = computed(() => comments.value.filter(c =>
-  (!search.value || c.user.toLowerCase().includes(search.value.toLowerCase()) || c.content.includes(search.value)) &&
-  (!filterStatus.value || c.status === filterStatus.value)
-));
+const filtered = computed(() =>
+  comments.value.filter(
+    (c) =>
+      (!search.value ||
+        c.user.toLowerCase().includes(search.value.toLowerCase()) ||
+        c.content.toLowerCase().includes(search.value.toLowerCase())) &&
+      (!filterStatus.value || c.status === filterStatus.value)
+  )
+);
 
-const statusColor: Record<string, string> = { approved: 'success', pending: 'warning', rejected: 'error', deleted: 'grey' };
-const statusLabel: Record<string, string> = { approved: 'Đã duyệt', pending: 'Chờ duyệt', rejected: 'Từ chối', deleted: 'Đã xoá' };
+const allChecked = computed(() => filtered.value.length > 0 && selected.value.length === filtered.value.length);
+const someChecked = computed(() => selected.value.length > 0 && !allChecked.value);
 
-function openBulk(action: string) {
-  if (!selected.value.length) return;
-  bulkAction.value = action; bulkDialog.value = true;
+function toggleAll(checked: boolean | null) {
+  selected.value = checked ? filtered.value.map((c) => c.id) : [];
 }
+
+type BulkAction = 'approve' | 'reject' | 'delete';
+
+const BULK: Record<BulkAction, { title: string; verb: string; color: 'success' | 'warning' | 'error'; icon: string }> = {
+  approve: { title: 'Duyệt bình luận', verb: 'Duyệt', color: 'success', icon: 'mdi-check' },
+  reject: { title: 'Từ chối bình luận', verb: 'Từ chối', color: 'warning', icon: 'mdi-cancel' },
+  delete: { title: 'Xác nhận xoá', verb: 'Xoá', color: 'error', icon: 'mdi-delete' }
+};
+
+const bulkDialog = ref(false);
+const bulkAction = ref<BulkAction>('approve');
+const bulk = computed(() => BULK[bulkAction.value]);
+
+function openBulk(action: BulkAction) {
+  if (!selected.value.length) return;
+  bulkAction.value = action;
+  bulkDialog.value = true;
+}
+
 function confirmBulk() {
-  const newStatus = bulkAction.value === 'approve' ? 'approved' : bulkAction.value === 'reject' ? 'rejected' : 'deleted';
-  if (newStatus === 'deleted') {
-    comments.value = comments.value.filter(c => !selected.value.includes(c.id));
+  if (bulkAction.value === 'delete') {
+    comments.value = comments.value.filter((c) => !selected.value.includes(c.id));
   } else {
-    comments.value.forEach(c => { if (selected.value.includes(c.id)) c.status = newStatus; });
+    const status: CommentStatus = bulkAction.value === 'approve' ? 'approved' : 'rejected';
+    comments.value.forEach((c) => {
+      if (selected.value.includes(c.id)) c.status = status;
+    });
   }
-  selected.value = []; bulkDialog.value = false;
+  selected.value = [];
+  bulkDialog.value = false;
 }
 </script>
 
 <template>
   <BaseBreadcrumb title="Quản lý bình luận" :breadcrumbs="breadcrumbs" />
-  <v-card rounded="lg" elevation="0" variant="outlined" class="mt-4">
-    <v-card-text>
-      <v-row align="center" class="mb-4">
-        <v-col cols="12" sm="4">
-          <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" placeholder="Tìm bình luận..." variant="outlined" density="compact" hide-details single-line />
-        </v-col>
-        <v-col cols="6" sm="3">
-          <v-select v-model="filterStatus" :items="[{title:'Tất cả',value:''},{title:'Chờ duyệt',value:'pending'},{title:'Đã duyệt',value:'approved'},{title:'Từ chối',value:'rejected'}]" item-title="title" item-value="value" label="Trạng thái" variant="outlined" density="compact" hide-details />
-        </v-col>
-        <v-col v-if="selected.length" class="d-flex gap-2 justify-end">
-          <v-btn color="success" variant="tonal" size="small" @click="openBulk('approve')">Duyệt ({{ selected.length }})</v-btn>
-          <v-btn color="warning" variant="tonal" size="small" @click="openBulk('reject')">Từ chối</v-btn>
-          <v-btn color="error" variant="tonal" size="small" @click="openBulk('delete')">Xoá</v-btn>
-        </v-col>
-      </v-row>
-      <v-table density="compact">
-        <thead>
-          <tr>
-            <th style="width:40px">
-              <v-checkbox density="compact" hide-details :model-value="selected.length === filtered.length && filtered.length > 0" :indeterminate="selected.length > 0 && selected.length < filtered.length" @update:model-value="v => selected = v ? filtered.map(x => x.id) : []" />
-            </th>
-            <th>Người dùng</th><th>Nội dung</th><th>Video</th><th>Trạng thái</th><th>Thời gian</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in filtered" :key="c.id">
-            <td><v-checkbox v-model="selected" :value="c.id" density="compact" hide-details /></td>
-            <td class="font-weight-medium text-body-2">{{ c.user }}</td>
-            <td class="text-body-2" style="max-width:250px"><div class="text-truncate">{{ c.content }}</div></td>
-            <td class="text-body-2"><router-link :to="`/videos/\${c.videoId}`" class="text-primary text-decoration-none">{{ c.video }}</router-link></td>
-            <td><v-chip :color="statusColor[c.status]" size="x-small" variant="tonal">{{ statusLabel[c.status] }}</v-chip></td>
-            <td class="text-caption text-medium-emphasis">{{ c.time }}</td>
-          </tr>
-          <tr v-if="!filtered.length">
-            <td colspan="6" class="text-center text-medium-emphasis py-8">Không có bình luận nào</td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card-text>
-  </v-card>
-  <v-dialog v-model="bulkDialog" max-width="420">
-    <v-card rounded="lg">
-      <v-card-title class="pa-4 text-h6">Xác nhận</v-card-title>
-      <v-card-text>Thực hiện hành động "{{ bulkAction }}" với {{ selected.length }} bình luận đã chọn?</v-card-text>
-      <v-card-actions class="pa-4 pt-0"><v-spacer />
-        <v-btn variant="text" @click="bulkDialog = false">Huỷ</v-btn>
-        <v-btn color="primary" variant="tonal" @click="confirmBulk">Xác nhận</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+
+  <CmsTableCard
+    :columns="6"
+    :count="filtered.length"
+    :total="filtered.length"
+    :items-per-page="Math.max(filtered.length, 1)"
+    unit="bình luận"
+    empty-title="Không có bình luận nào"
+    empty-description="Thử xoá bộ lọc để xem tất cả bình luận."
+  >
+    <template #toolbar>
+      <v-text-field
+        v-model="search"
+        class="cms-toolbar__search"
+        prepend-inner-icon="mdi-magnify"
+        placeholder="Tìm người dùng, nội dung…"
+        variant="outlined"
+        density="compact"
+        hide-details
+        single-line
+        clearable
+      />
+      <v-select
+        v-model="filterStatus"
+        :items="statusOpts"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 180px"
+      />
+      <div class="cms-toolbar__spacer"></div>
+      <template v-if="selected.length">
+        <v-btn color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="openBulk('approve')">
+          Duyệt ({{ selected.length }})
+        </v-btn>
+        <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-cancel" @click="openBulk('reject')">
+          Từ chối
+        </v-btn>
+        <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click="openBulk('delete')">
+          Xoá
+        </v-btn>
+      </template>
+    </template>
+
+    <template #head>
+      <tr>
+        <th style="width: 44px">
+          <v-checkbox
+            density="compact"
+            hide-details
+            :model-value="allChecked"
+            :indeterminate="someChecked"
+            aria-label="Chọn tất cả bình luận"
+            @update:model-value="toggleAll"
+          />
+        </th>
+        <th style="width: 160px">Người dùng</th>
+        <th>Nội dung</th>
+        <th style="width: 180px">Video</th>
+        <th style="width: 120px">Trạng thái</th>
+        <th style="width: 140px">Thời gian</th>
+      </tr>
+    </template>
+
+    <template #body>
+      <tr v-for="c in filtered" :key="c.id" :class="{ 'is-selected': selected.includes(c.id) }">
+        <td>
+          <v-checkbox v-model="selected" :value="c.id" density="compact" hide-details aria-label="Chọn bình luận" @click.stop />
+        </td>
+        <td class="font-weight-medium">{{ c.user }}</td>
+        <td style="max-width: 0"><div class="text-truncate">{{ c.content }}</div></td>
+        <td>
+          <router-link :to="`/videos/${c.videoId}`" class="cms-table__title">{{ c.video }}</router-link>
+        </td>
+        <td><CmsStatusChip type="comment" :value="c.status" /></td>
+        <td class="text-lightText">{{ c.time }}</td>
+      </tr>
+    </template>
+  </CmsTableCard>
+
+  <CmsConfirmDialog
+    v-model="bulkDialog"
+    :title="bulk.title"
+    :confirm-label="bulk.verb"
+    :color="bulk.color"
+    :icon="bulk.icon"
+    :message="`${bulk.verb} ${selected.length} bình luận đã chọn?${bulkAction === 'delete' ? ' Hành động này không thể hoàn tác.' : ''}`"
+    @confirm="confirmBulk"
+  />
 </template>

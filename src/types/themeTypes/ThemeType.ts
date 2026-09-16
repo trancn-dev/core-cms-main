@@ -10,6 +10,7 @@ export type ThemeTypes = {
     warning?: string;
     error?: string;
     lightprimary?: string;
+    onLightprimary?: string;
     lightsecondary?: string;
     lightsuccess?: string;
     lightinfo?: string;

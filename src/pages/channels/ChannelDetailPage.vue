@@ -1,93 +1,151 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useToast } from 'vue-toast-notification';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsInfoRow from '@/components/cms/CmsInfoRow.vue';
+import CmsStatusChip from '@/components/cms/CmsStatusChip.vue';
+import CmsStatCard from '@/components/cms/CmsStatCard.vue';
+import CmsTableCard from '@/components/cms/CmsTableCard.vue';
+import CmsConfirmDialog from '@/components/cms/CmsConfirmDialog.vue';
 import type { BreadcrumbType } from '@/types/common';
+import type { ChannelStatus, VideoStatus } from '@/types/media';
 
 const route = useRoute();
+const toast = useToast();
 const id = route.params.id;
-const breadcrumbs: BreadcrumbType[] = [{ title: 'Kênh', href: '/channels' }, { title: 'Chi tiết', disabled: true }];
+const breadcrumbs: BreadcrumbType[] = [
+  { title: 'Kênh', href: '/channels' },
+  { title: 'Chi tiết', disabled: true }
+];
 
 const channel = ref({
-  id, name: 'Dev Việt Nam', slug: 'dev-viet-nam',
+  id,
+  name: 'Dev Việt Nam',
+  slug: 'dev-viet-nam',
   description: 'Kênh chia sẻ kiến thức lập trình web, framework hiện đại và công nghệ mới nhất.',
-  owner: 'Nguyễn Văn An', email: 'an@devvn.com',
-  subscribers: 128400, totalViews: 2840000, videos: 84,
-  status: 'active', verified: true, createdAt: '15/03/2024'
+  owner: 'Nguyễn Văn An',
+  email: 'an@devvn.com',
+  subscribers: 128400,
+  totalViews: 2840000,
+  videos: 84,
+  status: 'active' as ChannelStatus,
+  verified: true,
+  createdAt: '15/03/2024'
 });
 
-const recentVideos = ref([
+const recentVideos = ref<{ id: number; title: string; views: number; status: VideoStatus; createdAt: string }[]>([
   { id: 1, title: 'Hướng dẫn Vue 3 từ A đến Z', views: 128400, status: 'published', createdAt: '01/08/2026' },
   { id: 2, title: 'Pinia — Quản lý state trong Vue', views: 53200, status: 'published', createdAt: '18/08/2026' },
-  { id: 3, title: 'Vue Router 4 Nâng cao', views: 38100, status: 'draft', createdAt: '25/08/2026' }
+  { id: 3, title: 'Vue Router 4 nâng cao', views: 38100, status: 'draft', createdAt: '25/08/2026' }
 ]);
 
-function fmt(n: number) { return n.toLocaleString('vi-VN'); }
+const fmt = (n: number) => n.toLocaleString('vi-VN');
+
+const suspendDialog = ref(false);
+const isSuspended = computed(() => channel.value.status === 'suspended');
+
+function confirmSuspend() {
+  channel.value.status = isSuspended.value ? 'active' : 'suspended';
+  suspendDialog.value = false;
+  toast.success(isSuspended.value ? 'Đã đình chỉ kênh.' : 'Đã khôi phục kênh.');
+}
 </script>
 
 <template>
-  <BaseBreadcrumb :title="channel.name" :breadcrumbs="breadcrumbs" />
-  <v-row class="mt-4">
+  <BaseBreadcrumb :title="channel.name" :breadcrumbs="breadcrumbs">
+    <template #actions>
+      <v-btn
+        :color="isSuspended ? 'success' : 'error'"
+        variant="tonal"
+        size="small"
+        :prepend-icon="isSuspended ? 'mdi-check' : 'mdi-cancel'"
+        @click="suspendDialog = true"
+      >
+        {{ isSuspended ? 'Khôi phục' : 'Đình chỉ' }}
+      </v-btn>
+      <v-btn color="primary" size="small" prepend-icon="mdi-pencil" :to="`/channels/${id}/edit`">Chỉnh sửa</v-btn>
+    </template>
+  </BaseBreadcrumb>
+
+  <v-row>
     <v-col cols="12" lg="4">
-      <v-card rounded="lg" elevation="0" variant="outlined">
-        <v-card-text class="text-center pa-6">
-          <v-avatar color="primary" size="80" rounded="lg" class="mb-3">
-            <span class="text-h4 text-white">{{ channel.name[0] }}</span>
+      <v-card variant="outlined" rounded="lg" elevation="0">
+        <div class="pa-6 text-center d-flex flex-column align-center ga-2">
+          <v-avatar color="lightprimary" size="72" rounded="lg">
+            <span class="text-h3 text-onLightprimary">{{ channel.name[0] }}</span>
           </v-avatar>
-          <h3 class="text-h5 font-weight-bold">
-            {{ channel.name }}
-            <v-icon v-if="channel.verified" size="20" color="info">mdi-check-decagram</v-icon>
-          </h3>
-          <div class="text-caption text-medium-emphasis">/{{ channel.slug }}</div>
-          <p class="text-body-2 text-medium-emphasis mt-2">{{ channel.description }}</p>
-        </v-card-text>
-        <v-divider />
-        <v-list density="compact">
-          <v-list-item>
-            <v-list-item-title class="text-body-2 text-medium-emphasis">Chủ kênh</v-list-item-title>
-            <template #append><span class="text-body-2">{{ channel.owner }}</span></template>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-title class="text-body-2 text-medium-emphasis">Email</v-list-item-title>
-            <template #append><span class="text-body-2">{{ channel.email }}</span></template>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-title class="text-body-2 text-medium-emphasis">Ngày tạo</v-list-item-title>
-            <template #append><span class="text-body-2">{{ channel.createdAt }}</span></template>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-title class="text-body-2 text-medium-emphasis">Trạng thái</v-list-item-title>
-            <template #append><v-chip color="success" size="x-small" variant="tonal">Hoạt động</v-chip></template>
-          </v-list-item>
-        </v-list>
-        <v-card-actions class="pa-4 d-flex gap-2">
-          <v-btn variant="tonal" color="primary" :to="`/channels/\${id}/edit`" size="small" prepend-icon="mdi-pencil">Chỉnh sửa</v-btn>
-          <v-btn variant="tonal" color="error" size="small" prepend-icon="mdi-cancel">Đình chỉ</v-btn>
-        </v-card-actions>
+          <div class="d-flex align-center ga-1">
+            <span class="text-h5">{{ channel.name }}</span>
+            <v-tooltip v-if="channel.verified" text="Kênh đã xác thực">
+              <template #activator="{ props: tip }">
+                <v-icon v-bind="tip" size="18" color="info">mdi-check-decagram</v-icon>
+              </template>
+            </v-tooltip>
+          </div>
+          <span class="text-caption text-lightText">/{{ channel.slug }}</span>
+          <p class="text-body-1 text-lightText mb-0">{{ channel.description }}</p>
+        </div>
+        <div class="px-4 pb-2 border-t-thin">
+          <CmsInfoRow label="Trạng thái"><CmsStatusChip type="channel" :value="channel.status" /></CmsInfoRow>
+          <CmsInfoRow label="Chủ kênh" :value="channel.owner" />
+          <CmsInfoRow label="Email" :value="channel.email" />
+          <CmsInfoRow label="Ngày tạo" :value="channel.createdAt" />
+        </div>
       </v-card>
     </v-col>
-    <v-col cols="12" lg="8">
-      <v-row class="mb-4">
-        <v-col cols="4"><v-card rounded="lg" elevation="0" variant="outlined" class="text-center pa-4"><div class="text-h4 font-weight-bold text-primary">{{ channel.videos }}</div><div class="text-caption text-medium-emphasis">Video</div></v-card></v-col>
-        <v-col cols="4"><v-card rounded="lg" elevation="0" variant="outlined" class="text-center pa-4"><div class="text-h4 font-weight-bold text-success">{{ fmt(channel.subscribers) }}</div><div class="text-caption text-medium-emphasis">Subscribers</div></v-card></v-col>
-        <v-col cols="4"><v-card rounded="lg" elevation="0" variant="outlined" class="text-center pa-4"><div class="text-h4 font-weight-bold text-warning">{{ fmt(channel.totalViews) }}</div><div class="text-caption text-medium-emphasis">Tổng lượt xem</div></v-card></v-col>
+
+    <v-col cols="12" lg="8" class="d-flex flex-column ga-5">
+      <v-row dense>
+        <v-col cols="12" sm="4">
+          <CmsStatCard icon="mdi-movie-outline" label="Video" :value="fmt(channel.videos)" tone="primary" />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <CmsStatCard icon="mdi-account-multiple-outline" label="Người đăng ký" :value="fmt(channel.subscribers)" tone="success" />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <CmsStatCard icon="mdi-eye" label="Tổng lượt xem" :value="fmt(channel.totalViews)" tone="info" />
+        </v-col>
       </v-row>
-      <v-card rounded="lg" elevation="0" variant="outlined">
-        <v-card-title class="pa-4 pb-2 text-h6">Video gần đây</v-card-title>
-        <v-divider />
-        <v-table density="compact">
-          <thead><tr><th>Tiêu đề</th><th class="text-right">Lượt xem</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
-          <tbody>
-            <tr v-for="v in recentVideos" :key="v.id">
-              <td><router-link :to="`/videos/\${v.id}`" class="text-primary text-decoration-none text-body-2">{{ v.title }}</router-link></td>
-              <td class="text-right text-body-2">{{ fmt(v.views) }}</td>
-              <td><v-chip :color="v.status === 'published' ? 'success' : 'grey'" size="x-small" variant="tonal">{{ v.status === 'published' ? 'Đã xuất bản' : 'Bản nháp' }}</v-chip></td>
-              <td class="text-body-2 text-medium-emphasis">{{ v.createdAt }}</td>
+
+      <div>
+        <div class="d-flex align-center justify-space-between mb-2">
+          <span class="text-h5">Video gần đây</span>
+          <v-btn variant="text" color="primary" size="small" to="/videos">Xem tất cả →</v-btn>
+        </div>
+        <CmsTableCard :columns="4" :count="recentVideos.length" empty-title="Kênh chưa có video nào">
+          <template #head>
+            <tr>
+              <th>Tiêu đề</th>
+              <th style="width: 110px" class="cms-num">Lượt xem</th>
+              <th style="width: 130px">Trạng thái</th>
+              <th style="width: 110px">Ngày tạo</th>
             </tr>
-          </tbody>
-        </v-table>
-        <v-card-actions><v-btn variant="text" color="primary" size="small" to="/videos">Xem tất cả video →</v-btn></v-card-actions>
-      </v-card>
+          </template>
+          <template #body>
+            <tr v-for="v in recentVideos" :key="v.id">
+              <td><router-link :to="`/videos/${v.id}`" class="cms-table__title">{{ v.title }}</router-link></td>
+              <td class="cms-num">{{ fmt(v.views) }}</td>
+              <td><CmsStatusChip type="video" :value="v.status" /></td>
+              <td class="text-lightText">{{ v.createdAt }}</td>
+            </tr>
+          </template>
+        </CmsTableCard>
+      </div>
     </v-col>
   </v-row>
+
+  <CmsConfirmDialog
+    v-model="suspendDialog"
+    :title="isSuspended ? 'Khôi phục kênh' : 'Đình chỉ kênh'"
+    :confirm-label="isSuspended ? 'Khôi phục' : 'Đình chỉ'"
+    :color="isSuspended ? 'success' : 'error'"
+    :icon="isSuspended ? 'mdi-check' : 'mdi-cancel'"
+    :message="
+      isSuspended
+        ? `Khôi phục kênh “${channel.name}”? Video của kênh sẽ hiển thị trở lại.`
+        : `Đình chỉ kênh “${channel.name}”? Toàn bộ video của kênh sẽ bị ẩn khỏi người xem.`
+    "
+    @confirm="confirmSuspend"
+  />
 </template>

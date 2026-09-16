@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsTableCard from '@/components/cms/CmsTableCard.vue';
+import CmsStatusChip from '@/components/cms/CmsStatusChip.vue';
+import CmsRowActions from '@/components/cms/CmsRowActions.vue';
+import CmsEmptyState from '@/components/cms/CmsEmptyState.vue';
+import CmsConfirmDialog from '@/components/cms/CmsConfirmDialog.vue';
 import type { BreadcrumbType } from '@/types/common';
 import { videoService } from '@/apis/media';
 import type { Video, VideoStatus } from '@/types/media';
+import { statusFilterOptions } from '@/utils/statusMaps';
 
 const breadcrumbs: BreadcrumbType[] = [{ title: 'Video', disabled: true }];
 
 const loading = ref(false);
+const error = ref<string | null>(null);
 const videos = ref<Video[]>([]);
 const total = ref(0);
 const page = ref(1);
@@ -16,26 +23,31 @@ const itemsPerPage = 10;
 const search = ref('');
 const filterStatus = ref<VideoStatus | ''>('');
 
-const statusOpts = [
-  { title: 'Tất cả trạng thái', value: '' },
-  { title: 'Đã xuất bản', value: 'published' },
-  { title: 'Bản nháp', value: 'draft' },
-  { title: 'Đang xử lý', value: 'processing' },
-  { title: 'Bị khoá', value: 'blocked' }
-];
-
-const statusColor: Record<string, string> = { published: 'success', draft: 'grey', processing: 'warning', blocked: 'error' };
-const statusLabel: Record<string, string> = { published: 'Đã xuất bản', draft: 'Bản nháp', processing: 'Đang xử lý', blocked: 'Bị khoá' };
+const statusOpts = statusFilterOptions('video', 'Tất cả trạng thái');
 
 const selected = ref<number[]>([]);
 const deleteDialog = ref(false);
+const deleting = ref(false);
 
 async function fetchVideos() {
   loading.value = true;
-  const res = await videoService.getList({ search: search.value, status: filterStatus.value || undefined, page: page.value, limit: itemsPerPage });
-  videos.value = res.items;
-  total.value = res.total;
-  loading.value = false;
+  error.value = null;
+  try {
+    const res = await videoService.getList({
+      search: search.value,
+      status: filterStatus.value || undefined,
+      page: page.value,
+      limit: itemsPerPage
+    });
+    videos.value = res.items;
+    total.value = res.total;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Máy chủ không phản hồi. Dữ liệu đã lưu vẫn an toàn.';
+    videos.value = [];
+    total.value = 0;
+  } finally {
+    loading.value = false;
+  }
 }
 
 onMounted(fetchVideos);
@@ -43,125 +55,220 @@ onMounted(fetchVideos);
 let searchTimer: ReturnType<typeof setTimeout>;
 watch([search, filterStatus], () => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { page.value = 1; fetchVideos(); }, 300);
+  searchTimer = setTimeout(() => {
+    page.value = 1;
+    fetchVideos();
+  }, 300);
 });
 watch(page, fetchVideos);
 
-const totalPages = computed(() => Math.ceil(total.value / itemsPerPage));
+const allChecked = computed(() => videos.value.length > 0 && selected.value.length === videos.value.length);
+const someChecked = computed(() => selected.value.length > 0 && !allChecked.value);
+const hasFilter = computed(() => Boolean(search.value || filterStatus.value));
 
-function fmt(n: number) { return n.toLocaleString('vi-VN'); }
+function toggleAll(checked: boolean | null) {
+  selected.value = checked ? videos.value.map((v) => v.id) : [];
+}
+
+function fmt(n: number) {
+  return n.toLocaleString('vi-VN');
+}
+
 function fmtDuration(sec?: number) {
   if (!sec) return '—';
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
-  return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+  return h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function fmtDate(iso?: string) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('vi-VN');
+}
+
+const pendingDelete = ref<Video | null>(null);
+
+const deleteMessage = computed(() =>
+  pendingDelete.value
+    ? `Bạn chắc chắn muốn xoá “${pendingDelete.value.title}”? Hành động này không thể hoàn tác.`
+    : `Bạn chắc chắn muốn xoá ${selected.value.length} video đã chọn? Hành động này không thể hoàn tác.`
+);
+
+function askDeleteOne(video: Video) {
+  pendingDelete.value = video;
+  deleteDialog.value = true;
+}
+
+function askDeleteSelected() {
+  pendingDelete.value = null;
+  deleteDialog.value = true;
 }
 
 async function confirmDelete() {
-  for (const id of selected.value) await videoService.delete(id);
-  selected.value = [];
-  deleteDialog.value = false;
-  fetchVideos();
+  deleting.value = true;
+  try {
+    const ids = pendingDelete.value ? [pendingDelete.value.id] : selected.value;
+    for (const id of ids) await videoService.delete(id);
+    selected.value = [];
+    pendingDelete.value = null;
+    deleteDialog.value = false;
+    fetchVideos();
+  } finally {
+    deleting.value = false;
+  }
 }
 </script>
 
 <template>
   <BaseBreadcrumb title="Danh sách video" :breadcrumbs="breadcrumbs" />
 
-  <v-card rounded="lg" elevation="0" variant="outlined" class="mt-4">
-    <v-card-text>
-      <!-- Toolbar -->
-      <v-row align="center" class="mb-4">
-        <v-col cols="12" sm="5">
-          <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" placeholder="Tìm kiếm video, kênh..." variant="outlined" density="compact" hide-details single-line clearable />
-        </v-col>
-        <v-col cols="12" sm="3">
-          <v-select v-model="filterStatus" :items="statusOpts" item-title="title" item-value="value" variant="outlined" density="compact" hide-details />
-        </v-col>
-        <v-col class="d-flex justify-end gap-2">
-          <v-btn v-if="selected.length" color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click="deleteDialog = true">
-            Xoá ({{ selected.length }})
+  <CmsTableCard
+    :columns="8"
+    :loading="loading"
+    :error="error"
+    :count="videos.length"
+    :total="total"
+    :page="page"
+    :items-per-page="itemsPerPage"
+    unit="video"
+    :thumb-column="1"
+    :chip-column="6"
+    @update:page="page = $event"
+    @retry="fetchVideos"
+  >
+    <template #toolbar>
+      <v-text-field
+        v-model="search"
+        class="cms-toolbar__search"
+        prepend-inner-icon="mdi-magnify"
+        placeholder="Tìm kiếm video, kênh…"
+        variant="outlined"
+        density="compact"
+        hide-details
+        single-line
+        clearable
+      />
+      <v-select
+        v-model="filterStatus"
+        :items="statusOpts"
+        item-title="title"
+        item-value="value"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 180px"
+      />
+
+      <div class="cms-toolbar__spacer"></div>
+
+      <v-btn
+        v-if="selected.length"
+        color="error"
+        variant="tonal"
+        size="small"
+        prepend-icon="mdi-delete"
+        @click="askDeleteSelected"
+      >
+        Xoá ({{ selected.length }})
+      </v-btn>
+      <v-btn color="primary" size="small" prepend-icon="mdi-plus" to="/videos/create">Thêm video</v-btn>
+    </template>
+
+    <template #head>
+      <tr>
+        <th style="width: 44px">
+          <v-checkbox
+            density="compact"
+            hide-details
+            :model-value="allChecked"
+            :indeterminate="someChecked"
+            aria-label="Chọn tất cả video"
+            @update:model-value="toggleAll"
+          />
+        </th>
+        <th>Tiêu đề</th>
+        <th style="width: 150px">Kênh</th>
+        <th style="width: 120px">Danh mục</th>
+        <th style="width: 96px" class="cms-num">Lượt xem</th>
+        <th style="width: 96px" class="cms-num">Thời lượng</th>
+        <th style="width: 120px">Trạng thái</th>
+        <th style="width: 140px" class="cms-num">Thao tác</th>
+      </tr>
+    </template>
+
+    <template #body>
+      <tr v-for="v in videos" :key="v.id" :class="{ 'is-selected': selected.includes(v.id) }">
+        <td>
+          <v-checkbox
+            v-model="selected"
+            :value="v.id"
+            density="compact"
+            hide-details
+            :aria-label="`Chọn ${v.title}`"
+            @click.stop
+          />
+        </td>
+        <td>
+          <div class="d-flex align-center ga-3" style="min-width: 0">
+            <div class="cms-table__thumb">
+              <v-img v-if="v.thumbnailUrl" :src="v.thumbnailUrl" width="56" height="32" cover />
+              <v-icon v-else size="16" color="lightText">mdi-image-outline</v-icon>
+            </div>
+            <div style="min-width: 0">
+              <router-link :to="`/videos/${v.id}`" class="cms-table__title">{{ v.title }}</router-link>
+              <div class="cms-table__sub">{{ fmtDate(v.createdAt) }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-center ga-1" style="min-width: 0">
+            <span class="text-truncate">{{ v.channel?.name }}</span>
+            <v-tooltip v-if="v.channel?.verified" text="Kênh đã xác thực">
+              <template #activator="{ props: tip }">
+                <v-icon v-bind="tip" size="14" color="info">mdi-check-decagram</v-icon>
+              </template>
+            </v-tooltip>
+          </div>
+        </td>
+        <td class="text-lightText">{{ v.category?.name ?? '—' }}</td>
+        <td class="cms-num">{{ fmt(v.viewsCount) }}</td>
+        <td class="cms-num text-lightText">{{ fmtDuration(v.duration) }}</td>
+        <td><CmsStatusChip type="video" :value="v.status" /></td>
+        <td class="cms-table__actions">
+          <CmsRowActions
+            :view-to="`/videos/${v.id}`"
+            :edit-to="`/videos/${v.id}/edit`"
+            @delete="askDeleteOne(v)"
+          />
+        </td>
+      </tr>
+    </template>
+
+    <template #empty>
+      <CmsEmptyState
+        title="Không tìm thấy video nào"
+        :description="
+          hasFilter
+            ? 'Thử xoá bộ lọc, hoặc thêm video đầu tiên vào thư viện.'
+            : 'Thêm video đầu tiên vào thư viện để bắt đầu.'
+        "
+      >
+        <template #actions>
+          <v-btn color="primary" size="small" prepend-icon="mdi-plus" to="/videos/create">
+            Thêm video đầu tiên
           </v-btn>
-          <v-btn color="primary" prepend-icon="mdi-plus" size="small" to="/videos/create">Thêm video</v-btn>
-        </v-col>
-      </v-row>
+        </template>
+      </CmsEmptyState>
+    </template>
+  </CmsTableCard>
 
-      <!-- Loading skeleton -->
-      <template v-if="loading">
-        <v-skeleton-loader v-for="i in 5" :key="i" type="table-row" />
-      </template>
-
-      <!-- Table -->
-      <v-table v-else density="compact">
-        <thead>
-          <tr>
-            <th style="width:40px">
-              <v-checkbox density="compact" hide-details
-                :model-value="selected.length === videos.length && videos.length > 0"
-                :indeterminate="selected.length > 0 && selected.length < videos.length"
-                @update:model-value="v => selected = v ? videos.map(x => x.id) : []" />
-            </th>
-            <th>Tiêu đề</th>
-            <th>Kênh</th>
-            <th>Danh mục</th>
-            <th class="text-right">Lượt xem</th>
-            <th>Thời lượng</th>
-            <th>Trạng thái</th>
-            <th style="width:80px"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="v in videos" :key="v.id">
-            <td><v-checkbox v-model="selected" :value="v.id" density="compact" hide-details /></td>
-            <td>
-              <div class="d-flex align-center gap-2">
-                <v-img v-if="v.thumbnailUrl" :src="v.thumbnailUrl" width="56" height="32" rounded="sm" cover />
-                <router-link :to="'/videos/' + v.id" class="text-primary text-decoration-none text-body-2 font-weight-medium">{{ v.title }}</router-link>
-              </div>
-            </td>
-            <td class="text-body-2 text-medium-emphasis">
-              {{ v.channel?.name }}
-              <v-icon v-if="v.channel?.verified" size="12" color="info">mdi-check-decagram</v-icon>
-            </td>
-            <td class="text-body-2">{{ v.category?.name ?? '—' }}</td>
-            <td class="text-right text-body-2 font-weight-medium">{{ fmt(v.viewsCount) }}</td>
-            <td class="text-body-2">{{ fmtDuration(v.duration) }}</td>
-            <td><v-chip :color="statusColor[v.status]" size="x-small" variant="tonal">{{ statusLabel[v.status] }}</v-chip></td>
-            <td>
-              <v-btn icon size="x-small" variant="text" :to="'/videos/' + v.id"><v-icon>mdi-eye</v-icon></v-btn>
-              <v-btn icon size="x-small" variant="text" :to="'/videos/' + v.id + '/edit'"><v-icon>mdi-pencil</v-icon></v-btn>
-            </td>
-          </tr>
-          <tr v-if="!videos.length && !loading">
-            <td colspan="8">
-              <div class="text-center text-medium-emphasis py-12">
-                <v-icon size="48" class="mb-2 text-grey-lighten-2">mdi-video-off</v-icon>
-                <div class="text-body-2">Không tìm thấy video nào</div>
-                <v-btn class="mt-3" size="small" color="primary" to="/videos/create" prepend-icon="mdi-plus">Thêm video đầu tiên</v-btn>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-
-      <!-- Pagination -->
-      <div v-if="total > itemsPerPage" class="d-flex align-center justify-space-between mt-4">
-        <span class="text-body-2 text-medium-emphasis">Hiển thị {{ (page-1)*itemsPerPage+1 }}–{{ Math.min(page*itemsPerPage, total) }} / {{ fmt(total) }} video</span>
-        <v-pagination v-model="page" :length="totalPages" density="compact" :total-visible="5" />
-      </div>
-    </v-card-text>
-  </v-card>
-
-  <v-dialog v-model="deleteDialog" max-width="420">
-    <v-card rounded="lg">
-      <v-card-title class="pa-4 text-h6">Xác nhận xoá</v-card-title>
-      <v-card-text>Bạn chắc chắn muốn xoá {{ selected.length }} video đã chọn? Hành động này không thể hoàn tác.</v-card-text>
-      <v-card-actions class="pa-4 pt-0">
-        <v-spacer />
-        <v-btn variant="text" @click="deleteDialog = false">Huỷ</v-btn>
-        <v-btn color="error" variant="tonal" :loading="loading" @click="confirmDelete">Xoá</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <CmsConfirmDialog
+    v-model="deleteDialog"
+    :message="deleteMessage"
+    :loading="deleting"
+    @confirm="confirmDelete"
+  />
 </template>

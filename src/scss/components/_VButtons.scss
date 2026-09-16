@@ -22,9 +22,11 @@
 }
 
 .v-btn {
-  text-transform: capitalize;
+  // Vietnamese copy must keep its own casing: "Thêm video", not "Thêm Video"
+  text-transform: none;
   letter-spacing: $btn-letter-spacing;
-  font-weight: 400;
+  font-weight: 600;
+  border-radius: 8px;
 }
 .v-btn--icon.v-btn--density-default {
   width: calc(var(--v-btn-height) + 6px);

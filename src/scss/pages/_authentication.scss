@@ -58,3 +58,9 @@
     color: rgb(var(--v-theme-lightText));
   }
 }
+
+// Shared by login and forgot-password
+.loginBox {
+  max-width: 475px;
+  margin: 0 auto;
+}

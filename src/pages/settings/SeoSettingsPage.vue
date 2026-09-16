@@ -1,32 +1,56 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsFormCard from '@/components/cms/CmsFormCard.vue';
+import CmsField from '@/components/cms/CmsField.vue';
+import CmsSwitchRow from '@/components/cms/CmsSwitchRow.vue';
+import CmsFormActions from '@/components/cms/CmsFormActions.vue';
 import type { BreadcrumbType } from '@/types/common';
-const breadcrumbs: BreadcrumbType[] = [{ title: 'Cài đặt SEO', disabled: true }];
-const form = ref({ metaTitle: 'MediaHub VN — Nền tảng video học tập', metaDescription: 'Xem hàng ngàn video học tập chất lượng cao về lập trình, thiết kế và nhiều chủ đề khác.', metaKeywords: 'video học tập, lập trình, thiết kế, devops', googleAnalyticsId: '', enableSitemap: true, enableOpenGraph: true });
-const saving = ref(false);
-async function onSubmit() { saving.value = true; await new Promise(r => setTimeout(r, 600)); saving.value = false; }
+import { useSettingsForm } from '@/composables/useSettingsForm';
+
+const breadcrumbs: BreadcrumbType[] = [
+  { title: 'Cài đặt', disabled: true },
+  { title: 'SEO', disabled: true }
+];
+
+const { form, saving, dirty, reset, save } = useSettingsForm({
+  metaTitle: 'MediaHub VN — Nền tảng video học tập',
+  metaDescription: 'Xem hàng ngàn video học tập chất lượng cao về lập trình, thiết kế và nhiều chủ đề khác.',
+  metaKeywords: 'video học tập, lập trình, thiết kế, devops',
+  googleAnalyticsId: '',
+  enableSitemap: true,
+  enableOpenGraph: true
+});
 </script>
+
 <template>
   <BaseBreadcrumb title="Cài đặt SEO" :breadcrumbs="breadcrumbs" />
-  <v-form @submit.prevent="onSubmit" class="mt-4">
+
+  <v-form @submit.prevent="save">
     <v-row justify="center">
-      <v-col cols="12" md="8">
-        <v-card rounded="lg" elevation="0" variant="outlined">
-          <v-card-title class="pa-4 pb-2 text-h6">SEO mặc định</v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-text-field v-model="form.metaTitle" label="Meta Title mặc định" variant="outlined" density="compact" class="mb-3" counter="60" />
-            <v-textarea v-model="form.metaDescription" label="Meta Description mặc định" variant="outlined" density="compact" rows="2" class="mb-3" counter="160" />
-            <v-text-field v-model="form.metaKeywords" label="Meta Keywords" variant="outlined" density="compact" class="mb-3" hint="Các từ khoá cách nhau bởi dấu phẩy" />
-            <v-text-field v-model="form.googleAnalyticsId" label="Google Analytics ID (GA4)" variant="outlined" density="compact" class="mb-3" placeholder="G-XXXXXXXXXX" />
-            <v-switch v-model="form.enableSitemap" label="Tự động tạo sitemap.xml" color="primary" hide-details density="compact" class="mb-2" />
-            <v-switch v-model="form.enableOpenGraph" label="Bật Open Graph meta tags" color="primary" hide-details density="compact" />
-          </v-card-text>
-          <v-card-actions class="pa-4 pt-0">
-            <v-btn color="primary" type="submit" :loading="saving" prepend-icon="mdi-content-save">Lưu cài đặt</v-btn>
-          </v-card-actions>
-        </v-card>
+      <v-col cols="12" md="8" class="d-flex flex-column ga-4">
+        <CmsFormCard title="SEO mặc định">
+          <CmsField v-slot="{ id }" label="Meta title mặc định" :hint="`${form.metaTitle.length}/60 ký tự`">
+            <v-text-field :id="id" v-model="form.metaTitle" variant="outlined" density="compact" hide-details />
+          </CmsField>
+          <CmsField v-slot="{ id }" label="Meta description mặc định" :hint="`${form.metaDescription.length}/160 ký tự`">
+            <v-textarea :id="id" v-model="form.metaDescription" variant="outlined" density="compact" hide-details rows="2" auto-grow />
+          </CmsField>
+          <CmsField v-slot="{ id }" label="Meta keywords" hint="Các từ khoá cách nhau bởi dấu phẩy">
+            <v-text-field :id="id" v-model="form.metaKeywords" variant="outlined" density="compact" hide-details />
+          </CmsField>
+          <CmsField v-slot="{ id }" label="Google Analytics ID (GA4)">
+            <v-text-field :id="id" v-model="form.googleAnalyticsId" variant="outlined" density="compact" hide-details placeholder="G-XXXXXXXXXX" />
+          </CmsField>
+        </CmsFormCard>
+
+        <CmsFormCard title="Tự động hoá">
+          <div>
+            <CmsSwitchRow v-model="form.enableSitemap" label="Tự động tạo sitemap.xml" />
+            <CmsSwitchRow v-model="form.enableOpenGraph" label="Bật thẻ Open Graph" note="Hiển thị ảnh và mô tả khi chia sẻ lên mạng xã hội" />
+          </div>
+        </CmsFormCard>
+
+        <CmsFormActions submit-label="Lưu cài đặt" :loading="saving" :disabled="!dirty" @cancel="reset" />
       </v-col>
     </v-row>
   </v-form>

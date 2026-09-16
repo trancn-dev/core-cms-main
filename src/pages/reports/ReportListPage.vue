@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsTableCard from '@/components/cms/CmsTableCard.vue';
+import CmsStatusChip from '@/components/cms/CmsStatusChip.vue';
+import CmsRowActions from '@/components/cms/CmsRowActions.vue';
 import type { BreadcrumbType } from '@/types/common';
+import type { ReportReason, ReportStatus, ReportType } from '@/types/media';
+import { statusFilterOptions } from '@/utils/statusMaps';
 
 const breadcrumbs: BreadcrumbType[] = [{ title: 'Báo cáo vi phạm', disabled: true }];
-const filterStatus = ref('');
-const filterType = ref('');
+const filterStatus = ref<ReportStatus | ''>('');
+const filterType = ref<ReportType | ''>('');
+const statusOpts = statusFilterOptions('report', 'Tất cả trạng thái');
+const typeOpts = statusFilterOptions('reportType', 'Tất cả loại');
 
-const reports = ref([
+type Row = { id: number; type: ReportType; content: string; contentId: number; reporter: string; reason: ReportReason; status: ReportStatus; createdAt: string };
+
+const reports = ref<Row[]>([
   { id: 1, type: 'video', content: 'Hướng dẫn Vue 3', contentId: 1, reporter: 'Nguyễn Văn A', reason: 'spam', status: 'pending', createdAt: '04/09/2026' },
   { id: 2, type: 'comment', content: 'Spam link mua hàng giảm giá', contentId: 4, reporter: 'Lê Thị B', reason: 'spam', status: 'pending', createdAt: '04/09/2026' },
   { id: 3, type: 'video', content: 'PostgreSQL tối ưu query', contentId: 5, reporter: 'Trần C', reason: 'copyright', status: 'reviewed', createdAt: '03/09/2026' },
@@ -15,46 +24,70 @@ const reports = ref([
   { id: 5, type: 'comment', content: 'Bình luận phản cảm', contentId: 2, reporter: 'Hoàng E', reason: 'sexual', status: 'dismissed', createdAt: '01/09/2026' }
 ]);
 
-const filtered = computed(() => reports.value.filter(r =>
-  (!filterStatus.value || r.status === filterStatus.value) &&
-  (!filterType.value || r.type === filterType.value)
-));
-
-const statusColor: Record<string, string> = { pending: 'warning', reviewed: 'info', resolved: 'success', dismissed: 'grey' };
-const statusLabel: Record<string, string> = { pending: 'Chờ xử lý', reviewed: 'Đang xem', resolved: 'Đã xử lý', dismissed: 'Bỏ qua' };
-const reasonLabel: Record<string, string> = { spam: 'Spam', violence: 'Bạo lực', copyright: 'Bản quyền', sexual: 'Nhạy cảm', other: 'Khác' };
-const reasonColor: Record<string, string> = { spam: 'warning', violence: 'error', copyright: 'info', sexual: 'purple', other: 'grey' };
+const filtered = computed(() =>
+  reports.value.filter(
+    (r) => (!filterStatus.value || r.status === filterStatus.value) && (!filterType.value || r.type === filterType.value)
+  )
+);
 </script>
 
 <template>
   <BaseBreadcrumb title="Quản lý báo cáo vi phạm" :breadcrumbs="breadcrumbs" />
-  <v-card rounded="lg" elevation="0" variant="outlined" class="mt-4">
-    <v-card-text>
-      <v-row class="mb-4">
-        <v-col cols="6" sm="3">
-          <v-select v-model="filterStatus" :items="[{title:'Tất cả',value:''},{title:'Chờ xử lý',value:'pending'},{title:'Đang xem',value:'reviewed'},{title:'Đã xử lý',value:'resolved'},{title:'Bỏ qua',value:'dismissed'}]" item-title="title" item-value="value" label="Trạng thái" variant="outlined" density="compact" hide-details />
-        </v-col>
-        <v-col cols="6" sm="3">
-          <v-select v-model="filterType" :items="[{title:'Tất cả',value:''},{title:'Video',value:'video'},{title:'Bình luận',value:'comment'}]" item-title="title" item-value="value" label="Loại" variant="outlined" density="compact" hide-details />
-        </v-col>
-      </v-row>
-      <v-table density="compact">
-        <thead>
-          <tr><th>Loại</th><th>Nội dung bị báo cáo</th><th>Người báo cáo</th><th>Lý do</th><th>Trạng thái</th><th>Ngày</th><th style="width:60px"></th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in filtered" :key="r.id">
-            <td><v-chip :color="r.type === 'video' ? 'primary' : 'secondary'" size="x-small" variant="tonal">{{ r.type === 'video' ? 'Video' : 'Comment' }}</v-chip></td>
-            <td class="text-body-2" style="max-width:200px"><div class="text-truncate">{{ r.content }}</div></td>
-            <td class="text-body-2 text-medium-emphasis">{{ r.reporter }}</td>
-            <td><v-chip :color="reasonColor[r.reason]" size="x-small" variant="tonal">{{ reasonLabel[r.reason] }}</v-chip></td>
-            <td><v-chip :color="statusColor[r.status]" size="x-small" variant="tonal">{{ statusLabel[r.status] }}</v-chip></td>
-            <td class="text-caption text-medium-emphasis">{{ r.createdAt }}</td>
-            <td><v-btn icon size="x-small" variant="text" :to="`/reports/\${r.id}`"><v-icon>mdi-eye</v-icon></v-btn></td>
-          </tr>
-          <tr v-if="!filtered.length"><td colspan="7" class="text-center text-medium-emphasis py-8">Không có báo cáo nào</td></tr>
-        </tbody>
-      </v-table>
-    </v-card-text>
-  </v-card>
+
+  <CmsTableCard
+    :columns="7"
+    :count="filtered.length"
+    :total="filtered.length"
+    :items-per-page="Math.max(filtered.length, 1)"
+    unit="báo cáo"
+    empty-title="Không có báo cáo nào"
+    empty-description="Không có báo cáo khớp với bộ lọc hiện tại."
+  >
+    <template #toolbar>
+      <v-select
+        v-model="filterStatus"
+        :items="statusOpts"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 180px"
+      />
+      <v-select
+        v-model="filterType"
+        :items="typeOpts"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 180px"
+      />
+    </template>
+
+    <template #head>
+      <tr>
+        <th style="width: 110px">Loại</th>
+        <th>Nội dung bị báo cáo</th>
+        <th style="width: 160px">Người báo cáo</th>
+        <th style="width: 160px">Lý do</th>
+        <th style="width: 120px">Trạng thái</th>
+        <th style="width: 110px">Ngày</th>
+        <th style="width: 80px" class="cms-num">Thao tác</th>
+      </tr>
+    </template>
+
+    <template #body>
+      <tr v-for="r in filtered" :key="r.id">
+        <td><CmsStatusChip type="reportType" :value="r.type" /></td>
+        <td style="max-width: 0">
+          <router-link :to="`/reports/${r.id}`" class="cms-table__title">{{ r.content }}</router-link>
+        </td>
+        <td class="text-lightText">{{ r.reporter }}</td>
+        <td><CmsStatusChip type="reportReason" :value="r.reason" /></td>
+        <td><CmsStatusChip type="report" :value="r.status" /></td>
+        <td class="text-lightText">{{ r.createdAt }}</td>
+        <td class="cms-table__actions" style="width: 80px">
+          <CmsRowActions :view-to="`/reports/${r.id}`" :editable="false" :deletable="false" />
+        </td>
+      </tr>
+    </template>
+  </CmsTableCard>
 </template>

@@ -223,3 +223,45 @@
     }
   }
 }
+
+/*
+ * Redesign: the active menu item is a filled lightprimary pill, not just
+ * recoloured text — see the sidebar in artboard 04.
+ */
+.scrollnavbar {
+  .v-list-subheader {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--v-theme-lightText));
+  }
+
+  .v-list-item {
+    &.v-list-item--active:not(.v-list-group__header) {
+      background: rgb(var(--v-theme-lightprimary));
+
+      .v-list-item-title {
+        color: rgb(var(--v-theme-onLightprimary));
+        font-weight: 600;
+      }
+
+      .pc-icon {
+        color: rgb(var(--v-theme-onLightprimary));
+      }
+    }
+
+    &:hover:not(.v-list-item--active) {
+      background: rgba(var(--v-theme-primary), 0.04);
+    }
+  }
+
+  /* Sub-items stay text-only: primary label + primary bullet */
+  .v-list-group__items .v-list-item.v-list-item--active {
+    background: transparent;
+
+    .v-list-item-title {
+      color: rgb(var(--v-theme-primary));
+      font-weight: 600;
+    }
+  }
+}

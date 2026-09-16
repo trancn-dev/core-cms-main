@@ -1,59 +1,90 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useToast } from 'vue-toast-notification';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsFormCard from '@/components/cms/CmsFormCard.vue';
+import CmsField from '@/components/cms/CmsField.vue';
+import CmsFormActions from '@/components/cms/CmsFormActions.vue';
+import CmsPasswordField from '@/components/cms/CmsPasswordField.vue';
 import type { BreadcrumbType } from '@/types/common';
+import type { UserRole, UserStatus } from '@/types/media';
+import { statusFilterOptions } from '@/utils/statusMaps';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 const isEdit = computed(() => !!route.params.id);
 const breadcrumbs: BreadcrumbType[] = [
   { title: 'Người dùng', href: '/users' },
   { title: isEdit.value ? 'Chỉnh sửa' : 'Thêm mới', disabled: true }
 ];
 
-const form = ref({ name: '', email: '', password: '', role: 'viewer', status: 'active' });
+const roleOpts = statusFilterOptions('userRole', '').slice(1);
+const statusOpts = statusFilterOptions('userStatus', '').slice(1);
+
+const form = ref({ name: '', email: '', password: '', role: 'viewer' as UserRole, status: 'active' as UserStatus });
 const saving = ref(false);
-const showPwd = ref(false);
+const submitted = ref(false);
 
 if (isEdit.value) {
   form.value = { name: 'Nguyễn Văn An', email: 'an@email.com', password: '', role: 'creator', status: 'active' };
 }
 
+const errors = computed(() => ({
+  name: submitted.value && !form.value.name.trim() ? 'Vui lòng nhập họ tên' : '',
+  email: submitted.value && !/^\S+@\S+\.\S+$/.test(form.value.email) ? 'Email không hợp lệ' : '',
+  password: submitted.value && !isEdit.value && form.value.password.length < 8 ? 'Mật khẩu tối thiểu 8 ký tự' : ''
+}));
+
 async function onSubmit() {
+  submitted.value = true;
+  if (Object.values(errors.value).some(Boolean)) return;
   saving.value = true;
-  await new Promise(r => setTimeout(r, 600));
+  await new Promise((r) => setTimeout(r, 600));
   saving.value = false;
+  toast.success(`Đã lưu tài khoản “${form.value.name}”.`);
   router.push('/users');
 }
 </script>
 
 <template>
   <BaseBreadcrumb :title="isEdit ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'" :breadcrumbs="breadcrumbs" />
-  <v-form @submit.prevent="onSubmit" class="mt-4">
+
+  <v-form @submit.prevent="onSubmit">
     <v-row justify="center">
-      <v-col cols="12" md="8" lg="6">
-        <v-card rounded="lg" elevation="0" variant="outlined">
-          <v-card-title class="pa-4 pb-2 text-h6">Thông tin tài khoản</v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-text-field v-model="form.name" label="Họ và tên *" variant="outlined" density="compact" class="mb-3" />
-            <v-text-field v-model="form.email" label="Email *" variant="outlined" density="compact" type="email" class="mb-3" />
-            <v-text-field v-model="form.password" :label="isEdit ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu *'" variant="outlined" density="compact" :type="showPwd ? 'text' : 'password'" class="mb-3">
-              <template #append-inner>
-                <v-btn icon size="x-small" variant="text" @click="showPwd = !showPwd">
-                  <v-icon>{{ showPwd ? 'mdi-eye-off' : 'mdi-eye' }}</v-icon>
-                </v-btn>
-              </template>
-            </v-text-field>
-            <v-select v-model="form.role" :items="[{title:'Admin',value:'admin'},{title:'Moderator',value:'moderator'},{title:'Creator',value:'creator'},{title:'Viewer',value:'viewer'}]" item-title="title" item-value="value" label="Role" variant="outlined" density="compact" class="mb-3" />
-            <v-select v-model="form.status" :items="[{title:'Hoạt động',value:'active'},{title:'Ẩn',value:'inactive'},{title:'Bị cấm',value:'banned'}]" item-title="title" item-value="value" label="Trạng thái" variant="outlined" density="compact" />
-          </v-card-text>
-          <v-card-actions class="pa-4 pt-0 d-flex gap-2">
-            <v-btn variant="outlined" to="/users" class="flex-grow-1">Huỷ</v-btn>
-            <v-btn color="primary" type="submit" :loading="saving" class="flex-grow-1">{{ isEdit ? 'Lưu thay đổi' : 'Tạo tài khoản' }}</v-btn>
-          </v-card-actions>
-        </v-card>
+      <v-col cols="12" md="8" lg="6" class="d-flex flex-column ga-4">
+        <CmsFormCard title="Thông tin tài khoản">
+          <CmsField v-slot="{ id }" label="Họ và tên" required :error="errors.name">
+            <v-text-field :id="id" v-model="form.name" variant="outlined" density="compact" hide-details :error="!!errors.name" />
+          </CmsField>
+          <CmsField v-slot="{ id }" label="Email" required :error="errors.email">
+            <v-text-field :id="id" v-model="form.email" type="email" variant="outlined" density="compact" hide-details :error="!!errors.email" />
+          </CmsField>
+          <CmsField
+            v-slot="{ id }"
+            :label="isEdit ? 'Mật khẩu mới' : 'Mật khẩu'"
+            :required="!isEdit"
+            :error="errors.password"
+            :hint="isEdit ? 'Để trống nếu không đổi' : 'Tối thiểu 8 ký tự'"
+          >
+            <CmsPasswordField :id="id" v-model="form.password" autocomplete="new-password" :error="!!errors.password" />
+          </CmsField>
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Vai trò">
+                <v-select :id="id" v-model="form.role" :items="roleOpts" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Trạng thái">
+                <v-select :id="id" v-model="form.status" :items="statusOpts" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+          </v-row>
+        </CmsFormCard>
+
+        <CmsFormActions cancel-to="/users" :submit-label="isEdit ? 'Lưu thay đổi' : 'Tạo tài khoản'" :loading="saving" />
       </v-col>
     </v-row>
   </v-form>

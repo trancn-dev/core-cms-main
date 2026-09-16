@@ -1,0 +1,591 @@
+//
+// CMS design system — values locked in artboard 07 ("Cài đặt giao diện").
+// Change them here, not per page.
+//
+:root {
+  --cms-font-size-base: 14px;
+  --cms-input-height: 38px;
+  --cms-row-padding-y: 12px;
+  --cms-row-padding-x: 16px;
+  --cms-radius: 12px;
+  --cms-radius-sm: 8px;
+  --cms-radius-thumb: 4px;
+  --cms-actions-col: 140px;
+  --cms-thumb-w: 56px;
+  --cms-thumb-h: 32px;
+}
+
+// ─── Page header ──────────────────────────────────────────────────────────────
+.cms-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  &__crumbs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: rgb(var(--v-theme-lightText));
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        color: rgb(var(--v-theme-primary));
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__meta {
+    font-size: 13px;
+    color: rgb(var(--v-theme-lightText));
+  }
+}
+
+// ─── Status chip ──────────────────────────────────────────────────────────────
+// Pill, 20px tall, 11px semibold — never carries an icon on its own.
+.cms-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &--sm {
+    height: 24px;
+  }
+}
+
+// ─── Table shell ──────────────────────────────────────────────────────────────
+// The table is full-bleed inside the card: it must NOT sit in a .v-card-text,
+// otherwise it loses 24px on each side and the action column no longer fits.
+.cms-table-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cms-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+
+  &__search {
+    flex: 1;
+    min-width: 260px;
+    max-width: 360px;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+}
+
+.cms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px var(--cms-row-padding-x);
+    background: rgb(var(--v-theme-gray100));
+    border-top: 1px solid rgb(var(--v-theme-borderLight));
+    border-bottom: 1px solid rgb(var(--v-theme-borderLight));
+    font-size: 12px;
+    font-weight: 600;
+    color: rgb(var(--v-theme-lightText));
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: var(--cms-row-padding-y) var(--cms-row-padding-x);
+    border-bottom: 1px solid rgb(var(--v-theme-borderLight));
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    background: rgb(var(--v-theme-surface));
+    cursor: pointer;
+
+    // Zebra: odd rows surface, even rows gray100
+    &:nth-child(even) {
+      background: rgb(var(--v-theme-gray100));
+    }
+
+    &:hover {
+      background: var(--v-cms-row-hover);
+    }
+
+    &.is-selected {
+      background: var(--v-cms-row-hover);
+      box-shadow: inset 2px 0 0 rgb(var(--v-theme-primary));
+    }
+  }
+
+  // Numbers line up column-wise
+  .cms-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgb(var(--v-theme-darkText));
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    // Table titles never take :visited — it makes the table look blotchy
+    &:hover {
+      color: rgb(var(--v-theme-primary));
+    }
+  }
+
+  &__sub {
+    font-size: 11px;
+    color: rgb(var(--v-theme-lightText));
+  }
+
+  &__thumb {
+    width: var(--cms-thumb-w);
+    height: var(--cms-thumb-h);
+    flex-shrink: 0;
+    border-radius: var(--cms-radius-thumb);
+    background: rgb(var(--v-theme-gray100));
+    border: 1px solid rgb(var(--v-theme-borderLight));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  &__actions {
+    width: var(--cms-actions-col);
+    white-space: nowrap;
+  }
+}
+
+.cms-table-wrap {
+  overflow-x: auto;
+}
+
+.cms-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px var(--cms-row-padding-x);
+  border-top: 1px solid rgb(var(--v-theme-borderLight));
+  font-size: 13px;
+  color: rgb(var(--v-theme-lightText));
+}
+
+// ─── 28px icon button (row actions) ───────────────────────────────────────────
+.cms-icon-btn.v-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: var(--cms-radius-sm);
+  background: rgb(var(--v-theme-gray100));
+  color: rgb(var(--v-theme-secondary));
+
+  &:hover {
+    background: rgb(var(--v-theme-lightprimary));
+    color: rgb(var(--v-theme-onLightprimary));
+  }
+
+  &--danger {
+    color: rgb(var(--v-theme-error));
+
+    &:hover {
+      background: rgb(var(--v-theme-lighterror));
+      color: rgb(var(--v-theme-error));
+    }
+  }
+}
+
+// ─── Empty / error state ──────────────────────────────────────────────────────
+.cms-state {
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  &__desc {
+    font-size: 13px;
+    color: rgb(var(--v-theme-lightText));
+  }
+}
+
+// ─── Skeleton row ─────────────────────────────────────────────────────────────
+@keyframes cms-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.cms-skeleton {
+  height: 14px;
+  border-radius: 4px;
+  background: rgb(var(--v-theme-gray100));
+
+  &--shimmer {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--v-theme-gray100)) 0px,
+      rgb(var(--v-theme-borderLight)) 200px,
+      rgb(var(--v-theme-gray100)) 400px
+    );
+    background-size: 800px 100%;
+    animation: cms-shimmer 1.4s linear infinite;
+  }
+
+  &--chip {
+    height: 20px;
+    width: 76px;
+    border-radius: 9999px;
+  }
+
+  &--thumb {
+    width: var(--cms-thumb-w);
+    height: var(--cms-thumb-h);
+    border-radius: var(--cms-radius-thumb);
+  }
+}
+
+// ─── Form field (single input style: label above the control) ─────────────────
+.cms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgb(var(--v-theme-lightText));
+
+    &.is-error {
+      color: rgb(var(--v-theme-error));
+    }
+  }
+
+  &__required {
+    color: rgb(var(--v-theme-error));
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: rgb(var(--v-theme-lightText));
+
+    &.is-error {
+      color: rgb(var(--v-theme-error));
+    }
+  }
+}
+
+.cms-form-card {
+  &__header {
+    padding: 16px 16px 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__body {
+    border-top: 1px solid rgb(var(--v-theme-borderLight));
+    padding: 16px;
+  }
+}
+
+// ─── Upload dropzone ──────────────────────────────────────────────────────────
+.cms-dropzone {
+  border: 1px dashed rgb(var(--v-theme-inputBorder));
+  border-radius: var(--cms-radius);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &--idle,
+  &--over {
+    border-color: rgb(var(--v-theme-primary));
+    background: rgb(var(--v-theme-lightprimary));
+    color: rgb(var(--v-theme-onLightprimary));
+  }
+
+  &--over {
+    border-style: solid;
+  }
+
+  &--filled {
+    border-style: solid;
+    border-color: rgb(var(--v-theme-borderLight));
+  }
+}
+
+// ─── Tag input ────────────────────────────────────────────────────────────────
+.cms-tag-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: var(--cms-input-height);
+  padding: 5px 8px;
+  border: 1px solid rgb(var(--v-theme-inputBorder));
+  border-radius: var(--cms-radius);
+
+  &:focus-within {
+    border-color: rgb(var(--v-theme-primary));
+    box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.35);
+  }
+
+  &__tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 9999px;
+    background: rgb(var(--v-theme-lightprimary));
+    color: rgb(var(--v-theme-onLightprimary));
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      background: rgb(var(--v-theme-lighterror));
+      color: rgb(var(--v-theme-error));
+    }
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 140px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    color: rgb(var(--v-theme-darkText));
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+}
+
+// ─── Stat card ────────────────────────────────────────────────────────────────
+.cms-stat {
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--cms-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__delta {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+// ─── Focus ring — never removed, only shown for keyboard users ────────────────
+.v-btn:focus-visible,
+.cms-icon-btn:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
+}
+
+// ─── Form actions ─────────────────────────────────────────────────────────────
+.cms-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__cancel {
+    flex: 1;
+  }
+
+  &__submit {
+    flex: 2;
+  }
+
+  // Mobile: a bar stuck to the bottom, within thumb reach
+  @media (max-width: 959px) {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin: 0 -16px;
+    padding: 10px 16px;
+    background: rgb(var(--v-theme-surface));
+    border-top: 1px solid rgb(var(--v-theme-borderLight));
+    box-shadow: var(--v-card-shadow);
+  }
+}
+
+// ─── Segmented choice (publish status pills) ──────────────────────────────────
+.cms-segmented {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+
+  .v-btn {
+    flex: 1;
+    height: 32px !important;
+    font-size: 12px;
+    border-radius: 8px !important;
+    border: 1px solid rgb(var(--v-theme-inputBorder)) !important;
+    color: rgb(var(--v-theme-lightText));
+    font-weight: 500;
+
+    &.v-btn--active {
+      background: rgb(var(--v-theme-primary));
+      border-color: transparent !important;
+      color: #fff;
+      font-weight: 600;
+
+      .v-btn__overlay {
+        opacity: 0;
+      }
+    }
+  }
+}
+
+// ─── Detail "label — value" rows ──────────────────────────────────────────────
+.cms-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 13px;
+
+  & + & {
+    border-top: 1px solid rgb(var(--v-theme-borderLight));
+  }
+
+  &__label {
+    color: rgb(var(--v-theme-lightText));
+    flex-shrink: 0;
+  }
+
+  &__value {
+    text-align: right;
+    min-width: 0;
+  }
+}
+
+// ─── Charts ───────────────────────────────────────────────────────────────────
+.cms-chart {
+  &__grid {
+    stroke: rgb(var(--v-theme-borderLight));
+    stroke-width: 1;
+  }
+
+  &__track {
+    stroke: rgb(var(--v-theme-gray100));
+  }
+
+  &__line {
+    stroke: rgb(var(--v-theme-primary));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__area {
+    fill: rgb(var(--v-theme-primary));
+    opacity: 0.12;
+  }
+
+  &__prev {
+    stroke: rgb(var(--v-theme-inputBorder));
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+  }
+
+  &__crosshair {
+    stroke: rgb(var(--v-theme-lightText));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  // Filled end-point marker, with a surface ring so it reads over the area
+  &__end {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 9999px;
+    background: rgb(var(--v-theme-primary));
+    box-shadow: 0 0 0 2px rgb(var(--v-theme-surface));
+    pointer-events: none;
+  }
+
+  &__tip {
+    position: absolute;
+    top: 8px;
+    transform: translateX(12px);
+    min-width: 160px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgb(var(--v-theme-surface));
+    border: 1px solid rgb(var(--v-theme-borderLight));
+    box-shadow: var(--v-card-shadow);
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 3;
+
+    &.is-flipped {
+      transform: translateX(calc(-100% - 12px));
+    }
+  }
+}
+
+// ─── Settings toggle row ──────────────────────────────────────────────────────
+.cms-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid rgb(var(--v-theme-borderLight));
+  }
+}

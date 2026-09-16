@@ -64,5 +64,6 @@ app.use(PerfectScrollbarPlugin);
 app.use(pinia);
 app.use(VueTablerIcons);
 app.use(i18n);
-app.use(ToastPlugin);
+// Toasts: top-right, auto-hide after 4s (artboard 05)
+app.use(ToastPlugin, { position: 'top-right', duration: 4000 });
 app.use(vuetify).mount('#app');

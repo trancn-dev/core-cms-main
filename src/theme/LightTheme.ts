@@ -7,7 +7,8 @@ const DefaultTheme: ThemeTypes = {
     'border-color': '#e8ebee',
     'carousel-control-size': 10,
     gradient: 'linear-gradient(to right, #3F78FF, #4680FF)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#4680FF',
@@ -17,6 +18,7 @@ const DefaultTheme: ThemeTypes = {
     warning: '#e58a00',
     error: '#dc2626',
     lightprimary: '#E9F0FF',
+    onLightprimary: '#4680FF',
     lightsecondary: '#F8F9FA',
     lightsuccess: '#c0e5d9',
     lightinfo: '#c5eff3',
@@ -51,7 +53,8 @@ const LightTheme1: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #254EDB, #3366FF)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#3366FF',
@@ -61,6 +64,7 @@ const LightTheme1: ThemeTypes = {
     warning: '#FFB814',
     error: '#FF4528',
     lightprimary: '#D6E4FF',
+    onLightprimary: '#3366FF',
     lightsecondary: '#F8F9FA',
     lightsuccess: '#EAFCD4',
     lightinfo: '#DCF0FF',
@@ -95,7 +99,8 @@ const LightTheme2: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #6A5DE3, #7265E6)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#7265E6',
@@ -105,6 +110,7 @@ const LightTheme2: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#EEEDFC',
+    onLightprimary: '#7265E6',
     lightsecondary: '#F8F9FA',
     lightinfo: '#E0F4F5',
     lightsuccess: '#E0F5EA',
@@ -139,7 +145,8 @@ const LightTheme3: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #006933, #068e44)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#068e44',
@@ -149,6 +156,7 @@ const LightTheme3: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#E6F3EC',
+    onLightprimary: '#068e44',
     lightsecondary: '#F8F9FA',
     lightsuccess: '#E0F5EA',
     lightinfo: '#E0F4F5',
@@ -183,7 +191,8 @@ const LightTheme4: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #2947ab, #3c64d0)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#3c64d0',
@@ -193,6 +202,7 @@ const LightTheme4: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#f0f6ff',
+    onLightprimary: '#3c64d0',
     lightsecondary: '#F8F9FA',
     lightsuccess: '#E0F5EA',
     lightinfo: '#E0F4F5',
@@ -227,7 +237,8 @@ const LightTheme5: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #cc5206, #f27013)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#f27013',
@@ -237,6 +248,7 @@ const LightTheme5: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#fff4e6',
+    onLightprimary: '#f27013',
     lightsecondary: '#F8F9FA',
     lightinfo: '#E0F4F5',
     lightsuccess: '#E0F5EA',
@@ -271,7 +283,8 @@ const LightTheme6: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #1a7b8a, #2aa1af)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#2aa1af',
@@ -281,6 +294,7 @@ const LightTheme6: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#e1f0ef',
+    onLightprimary: '#2aa1af',
     lightsecondary: '#F8F9FA',
     lightinfo: '#E0F4F5',
     lightsuccess: '#E0F5EA',
@@ -315,7 +329,8 @@ const LightTheme7: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #008245, #00a854)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#00a854',
@@ -325,6 +340,7 @@ const LightTheme7: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#d1e8d99c',
+    onLightprimary: '#00a854',
     lightsecondary: '#F8F9FA',
     lightinfo: '#E0F4F5',
     lightsuccess: '#E0F5EA',
@@ -359,7 +375,8 @@ const LightTheme8: ThemeTypes = {
   variables: {
     'border-color': '#e8ebee',
     gradient: 'linear-gradient(to right, #007069, #009688)',
-    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)'
+    'card-shadow': '0px 8px 24px rgba(19, 25, 32, 0.08)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.08)'
   },
   colors: {
     primary: '#009688',
@@ -369,6 +386,7 @@ const LightTheme8: ThemeTypes = {
     warning: '#FFBF00',
     error: '#F04134',
     lightprimary: '#c1d6d066',
+    onLightprimary: '#009688',
     lightsecondary: '#F8F9FA',
     lightinfo: '#E0F4F5',
     lightsuccess: '#E0F5EA',

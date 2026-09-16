@@ -6,7 +6,8 @@ const DarkDefaultTheme: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #7EA6FF, #6293FF)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#6293FF',
@@ -16,6 +17,7 @@ const DarkDefaultTheme: ThemeTypes = {
     warning: '#e58a00',
     error: '#dc2626',
     lightprimary: '#A3C0FF',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightsuccess: '#107d4f',
     lightinfo: '#1ba9bc',
@@ -51,7 +53,8 @@ const DarkTheme1: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #567fe9, #305bdd)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#305bdd',
@@ -61,6 +64,7 @@ const DarkTheme1: ThemeTypes = {
     warning: '#dda116',
     error: '#dd3f27',
     lightprimary: '#1c2134',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#202734',
     lightsuccess: '#1f2e1c',
@@ -96,7 +100,8 @@ const DarkTheme2: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #9186dd, #655ac8)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#655ac8',
@@ -106,6 +111,7 @@ const DarkTheme2: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#222130',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -141,7 +147,8 @@ const DarkTheme3: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #1f8f4e, #0a7d3e)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#0a7d3e',
@@ -151,6 +158,7 @@ const DarkTheme3: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#1a231f',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -186,7 +194,8 @@ const DarkTheme4: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #5d7dcb, #385ab5)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#385ab5',
@@ -196,6 +205,7 @@ const DarkTheme4: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#1d212d',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -231,7 +241,8 @@ const DarkTheme5: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #e9883a, #d26415)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#d26415',
@@ -241,6 +252,7 @@ const DarkTheme5: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#32221a',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -276,7 +288,8 @@ const DarkTheme6: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #47a6ad, #288d99)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#288d99',
@@ -286,6 +299,7 @@ const DarkTheme6: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#1c2628',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -321,7 +335,8 @@ const DarkTheme7: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #1da65d, #05934c)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#05934c',
@@ -331,6 +346,7 @@ const DarkTheme7: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#1a2721',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',
@@ -366,7 +382,8 @@ const DarkTheme8: ThemeTypes = {
   variables: {
     'border-color': '#3E4853',
     gradient: 'linear-gradient(to right, #1a9686, #058478)',
-    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)'
+    'card-shadow': '0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.20)',
+    'cms-row-hover': 'rgba(var(--v-theme-primary), 0.16)'
   },
   colors: {
     primary: '#058478',
@@ -376,6 +393,7 @@ const DarkTheme8: ThemeTypes = {
     warning: '#dda705',
     error: '#d13c31',
     lightprimary: '#1a2524',
+    onLightprimary: '#131920',
     lightsecondary: '#131920',
     lightinfo: '#1a2628',
     lightsuccess: '#1a2721',

@@ -1,5 +1,4 @@
 <template>
-  <BaseBreadcrumb :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
   <v-row class="bg-containerBg position-relative" no-gutters>
     <!---Login Part-->
     <v-col cols="12" lg="12" class="d-flex align-center">
@@ -10,19 +9,22 @@
               <v-card elevation="0" variant="outlined" rounded="lg" class="loginBox bg-surface">
                 <v-card-text class="pa-sm-10 pa-6">
                   <div>
-                    <div class="d-flex justify-space-between align-center mt-4">
-                      <h3 class="text-h3 text-center mb-0">Đăng nhập</h3>
+                    <div class="d-flex flex-column align-center ga-3 mb-2">
+                      <div class="cms-login-logo"><v-icon size="22" color="white">mdi-play-circle</v-icon></div>
+                      <h3 class="text-h3 mb-0">Đăng nhập</h3>
+                      <span class="text-body-1 text-lightText">Core CMS · trang quản trị</span>
                     </div>
                     <Form v-slot="{ handleSubmit, isSubmitting }">
                       <v-form class="mt-7" @submit="handleSubmit($event, login)">
                         <div class="">
-                          <v-label>Số điện thoại</v-label>
+                          <label class="cms-field__label" for="login-phone">Số điện thoại</label>
                           <v-text-field
+                            id="login-phone"
                             variant="outlined"
                             v-model="record.phone"
                             :error-messages="v$.phone.$error ? v$.phone.$errors[0].$message.toString() : ''"
                             placeholder="Nhập số điện thoại"
-                            density="default"
+                            density="compact"
                             single-line
                             color="primary"
                             type="tel"
@@ -31,36 +33,35 @@
                           </v-text-field>
                         </div>
                         <div>
-                          <v-label>Mật khẩu</v-label>
+                          <label class="cms-field__label" for="login-password">Mật khẩu</label>
                           <v-text-field
-                            aria-label="password"
+                            id="login-password"
                             v-model="record.password"
                             placeholder="Nhập mật khẩu"
                             :error-messages="v$.password.$error ? v$.password.$errors[0].$message.toString() : ''"
                             required
                             variant="outlined"
-                            density="default"
+                            density="compact"
                             color="primary"
                             :type="showPassword ? 'text' : 'password'"
                             class="mt-2"
                           >
                             <template v-slot:append-inner>
-                              <v-btn color="secondary" aria-label="icon" icon rounded variant="text">
-                                <SvgSprite
-                                  name="custom-eye-invisible"
-                                  style="width: 20px; height: 20px"
-                                  v-if="showPassword == false"
-                                  @click="showPassword = !showPassword"
-                                />
-                                <SvgSprite
-                                  name="custom-eye"
-                                  style="width: 20px; height: 20px"
-                                  v-if="showPassword == true"
-                                  @click="showPassword = !showPassword"
-                                />
+                              <v-btn
+                                color="secondary"
+                                :aria-label="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                                icon
+                                size="x-small"
+                                variant="text"
+                                @click="showPassword = !showPassword"
+                              >
+                                <SvgSprite :name="showPassword ? 'custom-eye' : 'custom-eye-invisible'" style="width: 18px; height: 18px" />
                               </v-btn>
                             </template>
                           </v-text-field>
+                        </div>
+                        <div class="d-flex justify-end mt-n2">
+                          <router-link :to="{ name: 'forgotPassword' }" class="text-primary text-body-1 text-decoration-none">Quên mật khẩu?</router-link>
                         </div>
                         <v-btn
                           color="primary"
@@ -69,7 +70,7 @@
                           block
                           class="mt-5"
                           variant="flat"
-                          size="large"
+                          height="44"
                           rounded="md"
                           type="submit"
                         >
@@ -100,7 +101,6 @@ import { helpers } from '@vuelidate/validators';
 import { phoneRegex } from '@/utils/validation';
 import { router } from '@/router/index';
 import { maxLength, minLength, requiredIf } from '@/utils/i18n-validators';
-import type { BreadcrumbType } from '@/types/common';
 // Type
 type LoginType = {
   phone: string;
@@ -109,18 +109,6 @@ type LoginType = {
 // Define
 const toast = useToast();
 const requireLength = 1;
-const breadcrumbs: BreadcrumbType[] = [
-  {
-    title: 'Danh sách trung tâm',
-    disabled: false,
-    href: '/manager/center'
-  },
-  {
-    title: 'Cập nhật trung tâm',
-    disabled: true,
-    href: '/manager/center'
-  }
-];
 const showPassword = ref<boolean>(false);
 const disableButton = ref<boolean>(false);
 const record = ref<LoginType>({
@@ -145,10 +133,15 @@ const login = async () => {
 };
 </script>
   
-  <style lang="scss">
-  .loginBox {
-    max-width: 475px;
-    margin: 0 auto;
-  }
-  </style>
+<style lang="scss">
+.cms-login-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgb(var(--v-theme-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
   

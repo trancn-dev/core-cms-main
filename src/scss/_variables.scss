@@ -11,7 +11,7 @@ $font-size-root: 1rem;
 $border-radius-root: 8px;
 $body-font-family: Inter var !default;
 $heading-font-family: $body-font-family !default;
-$btn-font-weight: 400 !default;
+$btn-font-weight: 600 !default;
 $btn-letter-spacing: 0 !default;
 
 // Global Radius as per breakeven point
@@ -42,7 +42,7 @@ $typography: map-deep-merge(
     ),
     'h2': (
       'size': 1.875rem,
-      'weight': 600,
+      'weight': 700,
       'line-height': 1.27,
       'font-family': inherit
     ),
@@ -97,9 +97,9 @@ $typography: map-deep-merge(
     ),
     'button': (
       'size': 0.875rem,
-      'weight': 500,
+      'weight': 600,
       'font-family': inherit,
-      'text-transform': capitalize
+      'text-transform': none
     ),
     'caption': (
       'size': 0.75rem,

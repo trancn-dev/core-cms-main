@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsTableCard from '@/components/cms/CmsTableCard.vue';
+import CmsRowActions from '@/components/cms/CmsRowActions.vue';
+import CmsConfirmDialog from '@/components/cms/CmsConfirmDialog.vue';
+import CmsFormCard from '@/components/cms/CmsFormCard.vue';
+import CmsField from '@/components/cms/CmsField.vue';
 import type { BreadcrumbType } from '@/types/common';
 
 const breadcrumbs: BreadcrumbType[] = [{ title: 'Tags', disabled: true }];
 
-const tags = ref([
+type Tag = { id: number; name: string; videos: number; editing: boolean; draft: string };
+
+const tags = ref<Tag[]>([
   { id: 1, name: 'vue3', videos: 128, editing: false, draft: '' },
   { id: 2, name: 'javascript', videos: 312, editing: false, draft: '' },
   { id: 3, name: 'typescript', videos: 204, editing: false, draft: '' },
@@ -20,75 +27,126 @@ const tags = ref([
 
 const newTag = ref('');
 const search = ref('');
-const deleteDialog = ref(false);
-const deleteId = ref<number | null>(null);
 
-function startEdit(tag: typeof tags.value[0]) {
-  tags.value.forEach(t => { t.editing = false; });
-  tag.draft = tag.name; tag.editing = true;
+const filtered = computed(() => tags.value.filter((t) => !search.value || t.name.includes(search.value.toLowerCase())));
+
+function startEdit(tag: Tag) {
+  tags.value.forEach((t) => (t.editing = false));
+  tag.draft = tag.name;
+  tag.editing = true;
 }
-function saveEdit(tag: typeof tags.value[0]) {
+
+function saveEdit(tag: Tag) {
   if (tag.draft.trim()) tag.name = tag.draft.trim();
   tag.editing = false;
 }
+
 function addTag() {
   const name = newTag.value.trim();
   if (!name) return;
   tags.value.push({ id: Date.now(), name, videos: 0, editing: false, draft: '' });
   newTag.value = '';
 }
-function openDelete(id: number) { deleteId.value = id; deleteDialog.value = true; }
-function confirmDelete() { tags.value = tags.value.filter(t => t.id !== deleteId.value); deleteDialog.value = false; }
+
+const deleteDialog = ref(false);
+const pending = ref<Tag | null>(null);
+
+function openDelete(tag: Tag) {
+  pending.value = tag;
+  deleteDialog.value = true;
+}
+
+function confirmDelete() {
+  tags.value = tags.value.filter((t) => t.id !== pending.value?.id);
+  deleteDialog.value = false;
+}
 </script>
 
 <template>
-  <BaseBreadcrumb title="Quản lý Tags" :breadcrumbs="breadcrumbs" />
-  <v-row class="mt-4">
+  <BaseBreadcrumb title="Quản lý tags" :breadcrumbs="breadcrumbs" />
+
+  <v-row>
     <v-col cols="12" md="4">
-      <v-card rounded="lg" elevation="0" variant="outlined">
-        <v-card-title class="pa-4 pb-2 text-h6">Thêm tag mới</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-text-field v-model="newTag" label="Tên tag" variant="outlined" density="compact" placeholder="Nhập tên tag..." @keydown.enter="addTag" class="mb-3" />
-          <v-btn color="primary" block :disabled="!newTag.trim()" @click="addTag">Thêm tag</v-btn>
-        </v-card-text>
-      </v-card>
+      <CmsFormCard title="Thêm tag mới">
+        <CmsField v-slot="{ id }" label="Tên tag" required>
+          <v-text-field
+            :id="id"
+            v-model="newTag"
+            variant="outlined"
+            density="compact"
+            hide-details
+            placeholder="Nhập tên tag…"
+            @keydown.enter="addTag"
+          />
+        </CmsField>
+        <v-btn color="primary" block :disabled="!newTag.trim()" @click="addTag">Thêm tag</v-btn>
+      </CmsFormCard>
     </v-col>
+
     <v-col cols="12" md="8">
-      <v-card rounded="lg" elevation="0" variant="outlined">
-        <v-card-text>
-          <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" placeholder="Tìm kiếm tag..." variant="outlined" density="compact" hide-details single-line class="mb-4" />
-          <v-table density="compact">
-            <thead><tr><th>Tên tag</th><th class="text-right">Số video</th><th style="width:100px"></th></tr></thead>
-            <tbody>
-              <tr v-for="tag in tags.filter(t => !search || t.name.includes(search.toLowerCase()))" :key="tag.id">
-                <td>
-                  <div v-if="tag.editing" class="d-flex align-center gap-2">
-                    <v-text-field v-model="tag.draft" variant="outlined" density="compact" hide-details autofocus @keydown.enter="saveEdit(tag)" @keydown.esc="tag.editing = false" style="max-width:200px" />
-                    <v-btn icon size="x-small" color="success" variant="text" @click="saveEdit(tag)"><v-icon>mdi-check</v-icon></v-btn>
-                  </div>
-                  <v-chip v-else size="small" variant="tonal" @click="startEdit(tag)" style="cursor:pointer">{{ tag.name }}</v-chip>
-                </td>
-                <td class="text-right text-body-2 text-medium-emphasis">{{ tag.videos }}</td>
-                <td>
-                  <v-btn icon size="x-small" variant="text" @click="startEdit(tag)"><v-icon>mdi-pencil</v-icon></v-btn>
-                  <v-btn icon size="x-small" variant="text" color="error" @click="openDelete(tag.id)"><v-icon>mdi-delete</v-icon></v-btn>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
+      <CmsTableCard
+        :columns="3"
+        :count="filtered.length"
+        :total="filtered.length"
+        :items-per-page="Math.max(filtered.length, 1)"
+        unit="tag"
+        empty-title="Không tìm thấy tag nào"
+      >
+        <template #toolbar>
+          <v-text-field
+            v-model="search"
+            class="cms-toolbar__search"
+            prepend-inner-icon="mdi-magnify"
+            placeholder="Tìm kiếm tag…"
+            variant="outlined"
+            density="compact"
+            hide-details
+            single-line
+            clearable
+          />
+        </template>
+
+        <template #head>
+          <tr>
+            <th>Tên tag</th>
+            <th style="width: 96px" class="cms-num">Số video</th>
+            <th style="width: 140px" class="cms-num">Thao tác</th>
+          </tr>
+        </template>
+
+        <template #body>
+          <tr v-for="tag in filtered" :key="tag.id">
+            <td>
+              <div v-if="tag.editing" class="d-flex align-center ga-2">
+                <v-text-field
+                  v-model="tag.draft"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  autofocus
+                  style="max-width: 220px"
+                  @keydown.enter="saveEdit(tag)"
+                  @keydown.esc="tag.editing = false"
+                />
+                <v-btn class="cms-icon-btn" variant="flat" size="small" aria-label="Lưu" @click.stop="saveEdit(tag)">
+                  <v-icon size="17" color="success">mdi-check</v-icon>
+                </v-btn>
+              </div>
+              <span v-else class="cms-chip bg-lightprimary text-onLightprimary cms-chip--sm">{{ tag.name }}</span>
+            </td>
+            <td class="cms-num">{{ tag.videos.toLocaleString('vi-VN') }}</td>
+            <td class="cms-table__actions">
+              <CmsRowActions :viewable="false" @edit="startEdit(tag)" @delete="openDelete(tag)" />
+            </td>
+          </tr>
+        </template>
+      </CmsTableCard>
     </v-col>
   </v-row>
-  <v-dialog v-model="deleteDialog" max-width="420">
-    <v-card rounded="lg">
-      <v-card-title class="pa-4 text-h6">Xác nhận xoá tag</v-card-title>
-      <v-card-text>Tag sẽ bị xoá khỏi tất cả video liên quan. Bạn có chắc không?</v-card-text>
-      <v-card-actions class="pa-4 pt-0"><v-spacer />
-        <v-btn variant="text" @click="deleteDialog = false">Huỷ</v-btn>
-        <v-btn color="error" variant="tonal" @click="confirmDelete">Xoá</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+
+  <CmsConfirmDialog
+    v-model="deleteDialog"
+    :message="`Xoá tag “${pending?.name}” khỏi tất cả video liên quan? Hành động này không thể hoàn tác.`"
+    @confirm="confirmDelete"
+  />
 </template>

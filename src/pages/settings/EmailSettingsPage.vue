@@ -1,49 +1,104 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useToast } from 'vue-toast-notification';
 import BaseBreadcrumb from '@/components/shared/BaseBreadcrumb.vue';
+import CmsFormCard from '@/components/cms/CmsFormCard.vue';
+import CmsField from '@/components/cms/CmsField.vue';
+import CmsSwitchRow from '@/components/cms/CmsSwitchRow.vue';
+import CmsPasswordField from '@/components/cms/CmsPasswordField.vue';
+import CmsFormActions from '@/components/cms/CmsFormActions.vue';
 import type { BreadcrumbType } from '@/types/common';
-const breadcrumbs: BreadcrumbType[] = [{ title: 'Cài đặt Email', disabled: true }];
-const form = ref({ smtpHost: 'smtp.gmail.com', smtpPort: 587, smtpUser: '', smtpPass: '', fromName: 'MediaHub VN', fromEmail: 'no-reply@mediahub.vn', enableTls: true });
-const saving = ref(false);
-const showPass = ref(false);
+import { useSettingsForm } from '@/composables/useSettingsForm';
+
+const breadcrumbs: BreadcrumbType[] = [
+  { title: 'Cài đặt', disabled: true },
+  { title: 'Email', disabled: true }
+];
+
+const toast = useToast();
+
+const { form, saving, dirty, reset, save } = useSettingsForm({
+  smtpHost: 'smtp.gmail.com',
+  smtpPort: 587,
+  smtpUser: '',
+  smtpPass: '',
+  fromName: 'MediaHub VN',
+  fromEmail: 'no-reply@mediahub.vn',
+  enableTls: true
+});
+
 const testing = ref(false);
 const testEmail = ref('');
-async function onSubmit() { saving.value = true; await new Promise(r => setTimeout(r, 600)); saving.value = false; }
-async function sendTest() { testing.value = true; await new Promise(r => setTimeout(r, 1000)); testing.value = false; }
+
+async function sendTest() {
+  if (!testEmail.value) return;
+  testing.value = true;
+  await new Promise((r) => setTimeout(r, 1000));
+  testing.value = false;
+  toast.success(`Đã gửi email kiểm tra tới ${testEmail.value}.`);
+}
 </script>
+
 <template>
-  <BaseBreadcrumb title="Cài đặt Email" :breadcrumbs="breadcrumbs" />
-  <v-form @submit.prevent="onSubmit" class="mt-4">
+  <BaseBreadcrumb title="Cài đặt email" :breadcrumbs="breadcrumbs" />
+
+  <v-form @submit.prevent="save">
     <v-row justify="center">
-      <v-col cols="12" md="8">
-        <v-card rounded="lg" elevation="0" variant="outlined" class="mb-4">
-          <v-card-title class="pa-4 pb-2 text-h6">Cấu hình SMTP</v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-row>
-              <v-col cols="8"><v-text-field v-model="form.smtpHost" label="SMTP Host" variant="outlined" density="compact" /></v-col>
-              <v-col cols="4"><v-text-field v-model="form.smtpPort" label="Port" variant="outlined" density="compact" type="number" /></v-col>
-            </v-row>
-            <v-text-field v-model="form.smtpUser" label="Username" variant="outlined" density="compact" class="mt-3 mb-3" />
-            <v-text-field v-model="form.smtpPass" label="Password" variant="outlined" density="compact" :type="showPass ? 'text' : 'password'" class="mb-3">
-              <template #append-inner><v-btn icon size="x-small" variant="text" @click="showPass = !showPass"><v-icon>{{ showPass ? 'mdi-eye-off' : 'mdi-eye' }}</v-icon></v-btn></template>
-            </v-text-field>
-            <v-text-field v-model="form.fromName" label="Tên hiển thị người gửi" variant="outlined" density="compact" class="mb-3" />
-            <v-text-field v-model="form.fromEmail" label="Email người gửi" variant="outlined" density="compact" class="mb-3" />
-            <v-switch v-model="form.enableTls" label="Bật TLS/SSL" color="primary" hide-details density="compact" />
-          </v-card-text>
-          <v-card-actions class="pa-4 pt-0">
-            <v-btn color="primary" type="submit" :loading="saving" prepend-icon="mdi-content-save">Lưu cài đặt</v-btn>
-          </v-card-actions>
-        </v-card>
-        <v-card rounded="lg" elevation="0" variant="outlined">
-          <v-card-title class="pa-4 pb-2 text-h6">Gửi email kiểm tra</v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4 d-flex gap-2">
-            <v-text-field v-model="testEmail" label="Gửi tới email" variant="outlined" density="compact" type="email" hide-details class="flex-grow-1" />
-            <v-btn color="secondary" variant="tonal" :loading="testing" @click="sendTest">Gửi test</v-btn>
-          </v-card-text>
-        </v-card>
+      <v-col cols="12" md="8" class="d-flex flex-column ga-4">
+        <CmsFormCard title="Cấu hình SMTP">
+          <v-row dense>
+            <v-col cols="8">
+              <CmsField v-slot="{ id }" label="SMTP host">
+                <v-text-field :id="id" v-model="form.smtpHost" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+            <v-col cols="4">
+              <CmsField v-slot="{ id }" label="Cổng">
+                <v-text-field :id="id" v-model.number="form.smtpPort" type="number" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Tên đăng nhập">
+                <v-text-field :id="id" v-model="form.smtpUser" variant="outlined" density="compact" hide-details autocomplete="off" />
+              </CmsField>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Mật khẩu">
+                <CmsPasswordField :id="id" v-model="form.smtpPass" autocomplete="new-password" />
+              </CmsField>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Tên người gửi">
+                <v-text-field :id="id" v-model="form.fromName" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <CmsField v-slot="{ id }" label="Email người gửi">
+                <v-text-field :id="id" v-model="form.fromEmail" type="email" variant="outlined" density="compact" hide-details />
+              </CmsField>
+            </v-col>
+          </v-row>
+          <CmsSwitchRow v-model="form.enableTls" label="Bật TLS/SSL" />
+        </CmsFormCard>
+
+        <CmsFormCard title="Gửi email kiểm tra">
+          <div class="d-flex ga-2 align-center">
+            <v-text-field
+              v-model="testEmail"
+              type="email"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Nhập email nhận thử…"
+              aria-label="Email nhận thử"
+              class="flex-grow-1"
+            />
+            <v-btn variant="outlined" :loading="testing" :disabled="!testEmail" @click="sendTest">Gửi thử</v-btn>
+          </div>
+          <div class="text-caption text-lightText">Dùng cấu hình đã lưu, không phải giá trị đang sửa.</div>
+        </CmsFormCard>
+
+        <CmsFormActions submit-label="Lưu cài đặt" :loading="saving" :disabled="!dirty" @cancel="reset" />
       </v-col>
     </v-row>
   </v-form>
